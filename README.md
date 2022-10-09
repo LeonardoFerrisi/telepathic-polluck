@@ -6,5 +6,11 @@ An exploration into pairing Creative Neural Networks with actual neural networks
 
 - Creative NeuralNet
 
+
+
+- Script that streams x seconds of data - saves it
+
 - Adapater Built using LSL script
+
+
 
