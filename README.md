@@ -12,5 +12,3 @@ An exploration into pairing Creative Neural Networks with actual neural networks
 
 - Adapater Built using LSL script
 
-
-
