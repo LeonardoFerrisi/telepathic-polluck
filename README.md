@@ -2,6 +2,11 @@
 An exploration into pairing Creative Neural Networks with actual neural networks in the human brain using interpreted brain activity
 
 
+# Dependencies
+
+- Numpy
+- OpenCV
+
 # Format
 
 - Creative NeuralNet
@@ -11,4 +16,3 @@ An exploration into pairing Creative Neural Networks with actual neural networks
 - Script that streams x seconds of data - saves it
 
 - Adapater Built using LSL script
-

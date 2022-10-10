@@ -20,6 +20,8 @@ def single_img_generation(resolution,seed,layers,width,activation):
     filename = str(generator) + ".jpg"
     save_numpy_image(numpy_image, filename, output_directory)
     
+    return filename
+    
 def single_img_generation_old(args):
     if args.seed is None:
         args.seed = random.randint(seed_min, seed_max)

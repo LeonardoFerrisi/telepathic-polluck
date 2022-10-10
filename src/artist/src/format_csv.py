@@ -42,10 +42,24 @@ def add_timestamps_csv(filename):
 	new_name = filename[0:i]+"_neuropype_format.csv"
 	data.to_csv(new_name)
 	
+def cut_csv(filename,new_length):
+
+	print("Cutting data to new length {} seconds.".format(new_length))
+
+	data = pd.read_csv(filename)
 	
+	cut_size = SAMPLE_RATE * new_length
+	
+	data = data.iloc[0:cut_size,:]
+	
+	# save csv
+	i = filename.find(".csv")
+	new_name = filename[0:i]+"_{} seconds.csv".format(new_length)
+	data.to_csv(new_name)
+
 if __name__ == "__main__":
 
 	if (len(argv) < 2):
 		raise ValueError("Call as : format_csv.py [filename.csv]")
 		
-	add_timestamps_csv(argv[1])
+	cut_csv(argv[1],int(argv[2]))

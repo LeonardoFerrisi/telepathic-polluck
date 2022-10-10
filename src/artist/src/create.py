@@ -26,7 +26,10 @@ def generate_seed(data):
 		bandpower = preprocessing.bandpower(FREQ_BANDS[band],data)
 		channel_mean_pow = np.mean(bandpower,axis=0)
 		#import pdb; pdb.set_trace()
+		
 		seed += str(int(np.mean(channel_mean_pow)) % 10)
+		#bandmean = 10 * np.mean(channel_mean_pow) / np.linalg.norm(channel_mean_pow) # normalize
+		#seed += str(int(bandmean)) 
 
 	return int(seed)
 
