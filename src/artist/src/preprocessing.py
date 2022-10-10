@@ -3,6 +3,7 @@ from scipy import signal
 from sys import argv
 import numpy as np
 from scipy.fft import fft,fftfreq
+import pdb
 
 HIGHPASS_THRESHOLD = 1
 LOWPASS_THRESHOLD = 60
@@ -23,6 +24,7 @@ def filter_signal(filename,filter_order=2):
 	
 	data = pd.read_csv(filename)
 	data = data.iloc[:,0:NUM_CHAN] # get only interesting columns
+	#pdb.set_trace()
 	data = np.transpose(np.asarray(data)) # make data shape : channels x time
 
 

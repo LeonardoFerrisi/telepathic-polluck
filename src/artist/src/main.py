@@ -17,7 +17,7 @@ def single_img_generation(resolution,seed,layers,width,activation):
     generator = NumpyArtGenerator(resolution,seed,layers,width,activation)
     numpy_image = generator.run(True)
 
-    filename = str(generator) + ".jpg"
+    filename = str(generator) + ".png"
     save_numpy_image(numpy_image, filename, output_directory)
     
     return filename
