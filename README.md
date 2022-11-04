@@ -1,6 +1,8 @@
-# telepathic-polluck
+# telepathic-polluck - ONE AND ONLY ONE
+
 An exploration into pairing Creative Neural Networks with actual neural networks in the human brain using interpreted brain activity
 
+A build for applying telepathic-polluck to brainflow streams
 
 # Dependencies
 
