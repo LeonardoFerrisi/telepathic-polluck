@@ -1,9 +1,14 @@
 import preprocessing
 from sys import argv
 import numpy as np
-import main
+from main import single_img_generation
+# from main import *
 import matplotlib.pyplot as plt
-from math import random
+import math 
+import random
+import os
+
+DIRNAME = os.path.dirname(__file__)
 
 IMG_NUM = 'single'
 RESOLUTION = [1920,1080]
@@ -46,7 +51,7 @@ def create_image_from_eeg(filename):
 	seed = generate_seed(filtered_data)
 	
 	print("Generating image.............")
-	main.single_img_generation(RESOLUTION,seed,LAYERS,WIDTH,ACTIVATION)
+	single_img_generation(RESOLUTION,seed,LAYERS,WIDTH,ACTIVATION) # Imported as a method from main
 	
 def convert_rgb(array):
 	r = np.max(array) - np.min(array)
@@ -83,7 +88,7 @@ def create_convolved_image_from_eeg(filename):
 			
 			alpha_val = alpha_bandpower[random.randint(0,len(alpha_bandpower)-1)]
 			gamma_val = gamma_bandpower[random.randint(0,len(gamma_bandpower)-1)]
-			delta_val = theta_bandpower[random.randint(0,len(delta_bandpower)-1)]
+			delta_val = delta_bandpower[random.randint(0,len(delta_bandpower)-1)]
 			
 			img[row,col] = [alpha_val,gamma_val,delta_val]
 	
@@ -91,9 +96,15 @@ def create_convolved_image_from_eeg(filename):
 
 if __name__ == "__main__":
 
-	if (len(argv) != 2):
-		raise ValueError("Correct usage: create.py [filename]")
+	# if (len(argv) != 2):
+	# 	raise ValueError("Correct usage: create.py [filename]")
 		
-	create_image_from_eeg(argv[1])
+
+
+	# create_image_from_eeg(argv[1])
+	file = r"C:\Users\leofe\neurotech\telepathic-polluck\data\UnicornRecorder_20221009_105023_Clean.csv"
+	filepath = os.path.join(DIRNAME, file)
+	create_image_from_eeg(file)
+
 	
 	print("Done!")
