@@ -56,7 +56,7 @@ class TAU:
 
             board.start_stream()
             print(f"\nCollecting 60 seconds of Brain Activity...\n")
-            time.sleep(10)
+            time.sleep(60)
             print("DONE! Generating...")
             data = board.get_board_data()  # get all data and remove it from internal buffer
             board.stop_stream()

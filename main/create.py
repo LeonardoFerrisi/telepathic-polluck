@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import math 
 import random
 import os
+import datetime
 
 DIRNAME = os.path.dirname(__file__)
 
@@ -42,7 +43,10 @@ def single_img_generation(resolution,seed,layers,width,activation, output_dir=''
 
     if output_dir == '':
         output_dir = OUTPUT_DIRECTORY
-    filename = str(generator) + ".png"
+
+	name = str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+	filename = name + ".png"
+    # filename = str(generator) + ".png"
     save_numpy_image(numpy_image, filename, output_dir)
     
     return filename
@@ -96,7 +100,6 @@ def create_image_from_stream(data, output_dir=''):
 
 	"""
 	Read in csv, preprocess, and pass a seed into the art generator.
-	
 	"""
 	filtered_data = preprocessing.filter_signal(datastream=data)
 	seed = generate_seed(filtered_data)
@@ -108,6 +111,7 @@ def create_image_from_stream(data, output_dir=''):
 def convert_rgb(array):
 	r = np.max(array) - np.min(array)
 	return [255 / (r * (val-np.min)) for val in array]
+
 def create_convolved_image_from_eeg(filename):
 
 	"""

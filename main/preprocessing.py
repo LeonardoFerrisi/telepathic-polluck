@@ -24,8 +24,9 @@ def filter_signal(filename="", datastream=None, filter_order=2):
 	if filename != "" and datastream is None:
 		data = pd.read_csv(filename)
 	elif datastream is not None and filename == "":
-		if type(datastream) == np.ndarray: datastream = pd.DataFrame(data=datastream)
-		data = datastream
+		ds_transposed = datastream.transpose()
+		if type(datastream) == np.ndarray: data = pd.DataFrame(data=ds_transposed)
+		else: data = ds_transposed
 	else:
 		raise ValueError("filename and datastream cannot both be None")
 		
@@ -56,7 +57,7 @@ def filter_signal(filename="", datastream=None, filter_order=2):
 	# mean shift? normalize?
 	
 	print(data_filt)
-	
+
 	print("Filtering complete!")
 	
 	return data_filt
