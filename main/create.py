@@ -1,7 +1,7 @@
 import preprocessing
 from sys import argv
 import numpy as np
-from main import single_img_generation
+# from main import single_img_generation
 # from main import *
 import matplotlib.pyplot as plt
 import math 
@@ -18,6 +18,38 @@ ACTIVATION = 'tanh'
 
 FREQ_BANDS = {"Alpha":[8,13],"Beta":[13,30],"Delta":[1,4],"Theta":[4,8],"Gamma":[30,100]}
 
+### For single image gen
+import argparse
+import random
+from art_net import NumpyArtGenerator
+from file_util import save_numpy_image
+
+seed_min = 0
+seed_max = 2147483647
+layers_min = 0
+layers_max = 50
+width_min = 0
+width_max = 20
+default_resolution = (1920, 1080)
+OUTPUT_DIRECTORY = "images"
+
+# Single image gen
+
+def single_img_generation(resolution,seed,layers,width,activation, output_dir=''):
+
+    generator = NumpyArtGenerator(resolution,seed,layers,width,activation)
+    numpy_image = generator.run(True)
+
+    if output_dir == '':
+        output_dir = OUTPUT_DIRECTORY
+    filename = str(generator) + ".png"
+    save_numpy_image(numpy_image, filename, output_dir)
+    
+    return filename
+
+
+# ######################
+
 def generate_seed(data):
 
 	"""
@@ -31,8 +63,15 @@ def generate_seed(data):
 	for band in list(FREQ_BANDS.keys()):
 		
 		bandpower = preprocessing.bandpower(FREQ_BANDS[band],data)
+
+
 		channel_mean_pow = np.mean(bandpower,axis=0)
+		
+		if channel_mean_pow == []:
+			channel_mean_pow = np.mean(bandpower, axis=1)
+
 		#import pdb; pdb.set_trace()
+		print(f"Channel mean pow: {channel_mean_pow}")
 		
 		seed += str(int(np.mean(channel_mean_pow)) % 10)
 		#bandmean = 10 * np.mean(channel_mean_pow) / np.linalg.norm(channel_mean_pow) # normalize
@@ -47,11 +86,24 @@ def create_image_from_eeg(filename, output_dir=''):
 	
 	"""
 	
-	filtered_data = preprocessing.filter_signal(filename)
+	filtered_data = preprocessing.filter_signal(filename=filename)
 	seed = generate_seed(filtered_data)
 	
 	print("Generating image.............")
 	single_img_generation(RESOLUTION,seed,LAYERS,WIDTH,ACTIVATION, output_dir) # Imported as a method from main
+
+def create_image_from_stream(data, output_dir=''):
+
+	"""
+	Read in csv, preprocess, and pass a seed into the art generator.
+	
+	"""
+	filtered_data = preprocessing.filter_signal(datastream=data)
+	seed = generate_seed(filtered_data)
+	
+	print("Generating image.............")
+	single_img_generation(RESOLUTION,seed,LAYERS,WIDTH,ACTIVATION, output_dir) # Imported as a method from main
+
 	
 def convert_rgb(array):
 	r = np.max(array) - np.min(array)

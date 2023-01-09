@@ -13,7 +13,7 @@ NUM_CHAN = 8
 
 ARTEFACT_THRESHOLD_mV = 4 # do we want artefact rejection?
 
-def filter_signal(filename,filter_order=2):
+def filter_signal(filename="", datastream=None, filter_order=2):
 
 	"""
 	Basic filtering of EEG data from a CSV file.
@@ -21,8 +21,14 @@ def filter_signal(filename,filter_order=2):
 	Return : numpy array of filtered data
 	
 	"""
-	
-	data = pd.read_csv(filename)
+	if filename != "" and datastream is None:
+		data = pd.read_csv(filename)
+	elif datastream is not None and filename == "":
+		if type(datastream) == np.ndarray: datastream = pd.DataFrame(data=datastream)
+		data = datastream
+	else:
+		raise ValueError("filename and datastream cannot both be None")
+		
 	data = data.iloc[:,0:NUM_CHAN] # get only interesting columns
 	#pdb.set_trace()
 	data = np.transpose(np.asarray(data)) # make data shape : channels x time
@@ -48,6 +54,8 @@ def filter_signal(filename,filter_order=2):
 	# artefact rejection?
 	
 	# mean shift? normalize?
+	
+	print(data_filt)
 	
 	print("Filtering complete!")
 	
