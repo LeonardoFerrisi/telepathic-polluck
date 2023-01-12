@@ -56,18 +56,15 @@ class TAU:
             board = BoardShim(int(boardID), params)
             board.prepare_session()
             
-
             TIMESLEEP = dislay_input_console(label="[TAU]", msg="How many seconds of brain activity do you want to record? Press ENTER for default 60", color="white")
 
             if TIMESLEEP == "": TIMESLEEP = 60
 
-            TIMESLEEP = int(TIMESLEEP)
-
             board.start_stream()
-            print(f"\nCollecting {TIMESLEEP} seconds of Brain Activity...\n")
+            print(f"\nCollecting {int(TIMESLEEP)} seconds of Brain Activity...\n")
 
-            with alive_bar(TIMESLEEP) as bar:
-                for i in range(TIMESLEEP):
+            with alive_bar(int(TIMESLEEP)) as bar:
+                for i in range(int(TIMESLEEP)):
                     time.sleep(1.0)
                     bar()
 
@@ -79,6 +76,7 @@ class TAU:
             print(pd.DataFrame(data=data))
 
             self.image_gen_from_local_data(data=data, output_path="")
+
     
     def run_filebased_image_gen(self, filepath, output_path):
         """
