@@ -52,6 +52,10 @@ def single_img_generation(resolution,seed,layers,width,activation, output_dir=''
     filename = name + ".png"
     # filename = str(generator) + ".png"
     save_numpy_image(numpy_image, filename, output_dir)
+
+    # using pillow
+    file_full_path = os.path.join(output_dir, filename)
+    os.startfile(file_full_path)
     
     return filename
 

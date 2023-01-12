@@ -8,6 +8,9 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, Brai
 from simplepygamemenus.menu import Menu
 import pandas as pd
 
+from alive_progress import alive_bar
+import time
+
 class TAU:
     """
     Thinking About U:
@@ -54,9 +57,20 @@ class TAU:
             board.prepare_session()
             
 
+            TIMESLEEP = dislay_input_console(label="[TAU]", msg="How many seconds of brain activity do you want to record? Press ENTER for default 60", color="white")
+
+            if TIMESLEEP == "": TIMESLEEP = 60
+
+            TIMESLEEP = int(TIMESLEEP)
+
             board.start_stream()
-            print(f"\nCollecting 60 seconds of Brain Activity...\n")
-            time.sleep(60)
+            print(f"\nCollecting {TIMESLEEP} seconds of Brain Activity...\n")
+
+            with alive_bar(TIMESLEEP) as bar:
+                for i in range(TIMESLEEP):
+                    time.sleep(1.0)
+                    bar()
+
             print("DONE! Generating...")
             data = board.get_board_data()  # get all data and remove it from internal buffer
             board.stop_stream()
