@@ -56,6 +56,7 @@ def create_image_from_eeg(filename, output_dir=''):
 def convert_rgb(array):
 	r = np.max(array) - np.min(array)
 	return [255 / (r * (val-np.min)) for val in array]
+	
 def create_convolved_image_from_eeg(filename):
 
 	"""

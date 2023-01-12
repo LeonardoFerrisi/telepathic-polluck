@@ -48,7 +48,7 @@ class TAU:
             BoardShim.enable_dev_board_logger()
             params = BrainFlowInputParams()
             if int(boardID) > 0 :
-                port = dislay_input_console(label="[TAU]", msg="Input ID of board to connect to", color="white")
+                port = dislay_input_console(label="[TAU]", msg="Input port", color="white")
                 params.serial_port = port
             board = BoardShim(int(boardID), params)
             board.prepare_session()

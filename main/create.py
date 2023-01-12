@@ -13,11 +13,15 @@ DIRNAME = os.path.dirname(__file__)
 
 IMG_NUM = 'single'
 RESOLUTION = [1920,1080]
-LAYERS = 30
-WIDTH = 15
+# LAYERS = 30
+# WIDTH = 15
+LAYERS = 10
+WIDTH = 9
+
+# Fewer Layers = Prettier Image
 ACTIVATION = 'tanh'
 
-FREQ_BANDS = {"Alpha":[8,13],"Beta":[13,30],"Delta":[1,4],"Theta":[4,8],"Gamma":[30,100]}
+FREQ_BANDS = {"Alpha":[8,13],"Beta":[13,30],"Delta":[1,4],"Theta":[4,8],"Gamma":[30,60]}
 
 ### For single image gen
 import argparse
@@ -43,9 +47,9 @@ def single_img_generation(resolution,seed,layers,width,activation, output_dir=''
 
     if output_dir == '':
         output_dir = OUTPUT_DIRECTORY
-
-	name = str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-	filename = name + ".png"
+    
+    name = str(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+    filename = name + ".png"
     # filename = str(generator) + ".png"
     save_numpy_image(numpy_image, filename, output_dir)
     
@@ -71,8 +75,8 @@ def generate_seed(data):
 
 		channel_mean_pow = np.mean(bandpower,axis=0)
 		
-		if channel_mean_pow == []:
-			channel_mean_pow = np.mean(bandpower, axis=1)
+		# if channel_mean_pow == []:
+		# 	channel_mean_pow = np.mean(bandpower, axis=1)
 
 		#import pdb; pdb.set_trace()
 		print(f"Channel mean pow: {channel_mean_pow}")
