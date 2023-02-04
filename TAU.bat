@@ -1,6 +1,8 @@
 @echo off
 
-CD "C:\Users\leofe\neurotech\telepathic-polluck"
+echo changing directory to %TAU%
+
+CD %TAU%
 
 echo Currently in: %cd%
 echo ------------------------------------------
