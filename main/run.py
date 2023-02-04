@@ -23,12 +23,18 @@ class TAU:
             "0" : -1,  # Simulated board
             "1" : 22,  # Muse 2 Board using BLED Dongle
             "2" : 23,  # Muse 2016 Board using BLED Dongle
+            "3" : 0,
+            "4" : 1, 
+            "5" : 2
         }
 
         self.board_code_name_pairs = {
             "0": "Simulated Board",
             "1": "Muse 2",
-            "2": "Muse 2016"
+            "2": "Muse 2016",
+            "3": "Cyton (OpenBCI 8 channel)",
+            "4": "Ganglion (OpenBCI 4 channe;)",
+            "5": "Cyton-Daisy (OpenBCI 16 channel)"
         }
 
     def preflight(self):
