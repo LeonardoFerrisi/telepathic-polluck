@@ -7,6 +7,9 @@ from run import create_image_from_stream
 import threading
 import asyncio
 
+
+import socket
+
 class GUI:
 
     def __init__(self, sizex, sizey):

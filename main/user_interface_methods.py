@@ -9,7 +9,7 @@ def dislay_console( label='' ,msg='', color="white"):
     message_contents = label_text + colored(msg, color)
     print(message_contents)
 
-def dislay_input_console( label='' ,msg='', color="white"):
+def display_input_console( label='' ,msg='', color="white"):
     """
     Display a message to console and returns input
     """

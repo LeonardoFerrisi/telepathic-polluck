@@ -1,7 +1,7 @@
 import time
 
 from connect import Comms
-from user_interface_methods import dislay_console, dislay_input_console
+from user_interface_methods import dislay_console, display_input_console
 from create import create_image_from_eeg, create_image_from_stream
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
@@ -10,6 +10,7 @@ import pandas as pd
 
 from alive_progress import alive_bar
 import time
+import os
 
 class TAU:
     """
@@ -18,13 +19,89 @@ class TAU:
     """
     def __init__(self):
         
-        pass
+        self.board_code_pairs = {
+            "0" : -1,  # Simulated board
+            "1" : 22,  # Muse 2 Board using BLED Dongle
+            "2" : 23,  # Muse 2016 Board using BLED Dongle
+        }
+
+        self.board_code_name_pairs = {
+            "0": "Simulated Board",
+            "1": "Muse 2",
+            "2": "Muse 2016"
+        }
 
     def preflight(self):
         """
         Conducts all processes neccessary for Brain Activity to Image Generation
         """
         pass
+
+    def board_prompt(self):
+        """
+        Prompt the user to select a desired board
+        """
+        dislay_console( label="TAU", msg="The following are boards you can use: ", color="cyan")
+        for key, value in self.board_code_name_pairs.items():
+            dislay_console( label=key, msg=value )
+
+        print("\n")
+
+        boardID = 100 # start with a ridiculous value
+
+        while boardID not in self.board_code_pairs.keys():
+            boardID = display_input_console(label="[TAU]", msg="Input ID of board to connect to", color="white")
+
+            if boardID not in self.board_code_pairs.keys():
+                dislay_console(label="WARNING", msg="boardID not in stored values. Please try again.", color="red")
+
+        return self.board_code_pairs[boardID]
+
+    def port_prompt(self):
+        """
+        Prompt the user to enter a new port or use the current one
+        """
+        data = self.read_userdata()
+        port = data["PORT"]
+        dislay_console(label="[TAU]", msg=f"Current port is: {port}")
+        changeport = display_input_console(label="[TAU]", msg="Would you like to change this port? (Y/N)")
+        if changeport.upper() == "Y":
+            dislay_console(label="[ HINT ]", msg="You can find which ports are available in DEVICE MANAGER")
+            port = display_input_console(label="[TAU]", msg="Input port:", color="white")
+            self.update_userdata("PORT", port)
+        return port
+
+    def read_userdata(self):
+        """
+        Reads the contents of local_data/userdata.dat
+        """
+        data = {}
+        with open("main//local_data//userdata.dat", "r") as f:
+            for line in f.readlines():
+                var, val = line.split(": ")
+                data[var] = val
+        return data
+
+    def update_userdata(self, variable:str, value):
+
+        # assert that variable exists
+
+        data = self.read_userdata()
+
+        # wipe the file
+
+        open("main//local_data//userdata.dat", "w").close()
+
+        assert variable.upper() in data.keys()
+
+        # change it 
+
+        data[variable] = str(value)
+
+        with open("main//local_data//userdata.dat", "w") as f:
+            for key, value in data.items():
+                content = key.upper() + ": " + value
+                f.writelines(content)
     
     def run(self):
         
@@ -34,29 +111,29 @@ class TAU:
         in1 = 0
         requestedVals = ["1","2"]
         while in1 not in requestedVals:
-            in1 = dislay_input_console(label="[TAU]", msg="Would you like to:\n[1] Use a Previous EEG Recording\n[2] Record new EEG data\n", color='white')
+            in1 = display_input_console(label="[TAU]", msg="Would you like to:\n[1] Use a Previous EEG Recording\n[2] Record new EEG data\n", color='white')
             print(str(type(in1))+":"+in1)
             if in1 not in requestedVals:
                 dislay_console(label="[TAU]", msg="Please enter either 1 or 2 to indicate selected option", color='red')
 
         if in1 == str(1):
-            filepath = dislay_input_console(label="[TAU]", msg="Please enter the filepath of the recording you would like to use.", color="white")
-            output_path = dislay_input_console(label="[TAU]", msg="Please enter the output directory path. Press enter to use default 'images/'.", color="white")
+            filepath = display_input_console(label="[TAU]", msg="Please enter the filepath of the recording you would like to use.", color="white")
+            output_path = display_input_console(label="[TAU]", msg="Please enter the output directory path. Press enter to use default 'images/'.", color="white")
             self.run_filebased_image_gen(filepath, output_path)
         elif in1 == str(2):
-            boardID = dislay_input_console(label="[TAU]", msg="Input ID of board to connect to", color="white")
-            output_path = dislay_input_console(label="[TAU]", msg="Please enter the output directory path. Press enter to use default 'images/generated'.", color="white")
+            boardID = self.board_prompt()
+            output_path = display_input_console(label="[TAU]", msg="Please enter the output directory path. Press enter to use default 'images/generated'.", color="white")
             
             # Connect board
             BoardShim.enable_dev_board_logger()
             params = BrainFlowInputParams()
             if int(boardID) > 0 :
-                port = dislay_input_console(label="[TAU]", msg="Input port", color="white")
+                port = self.port_prompt()
                 params.serial_port = port
             board = BoardShim(int(boardID), params)
             board.prepare_session()
             
-            TIMESLEEP = dislay_input_console(label="[TAU]", msg="How many seconds of brain activity do you want to record? Press ENTER for default 60", color="white")
+            TIMESLEEP = display_input_console(label="[TAU]", msg="How many seconds of brain activity do you want to record? Press ENTER for default 60", color="white")
 
             if TIMESLEEP == "": TIMESLEEP = 60
 
@@ -73,11 +150,10 @@ class TAU:
             board.stop_stream()
             board.release_session()
 
-            print(pd.DataFrame(data=data))
+            # print(pd.DataFrame(data=data)) # For debugging purposes
 
             self.image_gen_from_local_data(data=data, output_path="")
 
-    
     def run_filebased_image_gen(self, filepath, output_path):
         """
         A method for loading an EEG recording file and outputting it
@@ -93,59 +169,13 @@ class TAU:
         outpath = 'images/generated/' if output_path == '' else output_path
         # dislay_console(label="[TAU]", msg=f"Using '{outpath}' as output path", color='cyan')
         print("[TAU]"+ f"  Using '{outpath}' as output path")
-        create_image_from_stream(data=data, output_dir=output_path)
-
-class GUI:
-
-    def __init__(self, sizex, sizey):
-
-        # d = pygame.Surface(size=(1000,800)
-        cx = sizex/2
-        cy = sizey/2
-
-        self.main = Menu(displaytitle=False, x=sizex, y=sizey)
-        self.main.add_text(text="THINKING ABOUT U", x=cx, y=30, size=25, color="#ff80ff")
-        # b_menu = Menu(main=self.main, title="other menu", showESCKEYhint=True)
-        # self.main.add_button(label="Connect", x=cx, y=250, fontsize=30, function=b_menu.run_menu)
-
-    def connect_board(self, boardID):
-        "Connect a board"
-        self.board = BoardShim(boardID, self.params)
-        self.board.prepare_session()
-
-    def run_demo(self):
-        BoardShim.enable_dev_board_logger()
-        self.params = BrainFlowInputParams()
-        self.connect_board(boardID=-1)
-        self.run()
-
-    def run_with_board(self, boardID, port):
-        BoardShim.enable_dev_board_logger()
-        self.params = BrainFlowInputParams()
-        self.params.serial_port = port
-        self.connect_board(boardID=boardID)
-    
-    def run(self, timesleep=60):
-        self.board.start_stream()
-        print(f"\nCollecting {timesleep} seconds of Brain Activity...\n")
-        time.sleep(timesleep)
-        print("DONE! Generating...")
-        data = self.board.get_board_data()  # get all data and remove it from internal buffer
-        self.board.stop_stream()
-        self.board.release_session()
-
-        create_image_from_stream(data=data, output_dir="")
+        username = display_input_console(label="[TAU]", msg="Please enter the name for the image.", color="white")
+        create_image_from_stream(data=data, output_dir=output_path, username=username)
 
 if __name__ == "__main__":
+    os.system('cls')
     t = TAU()
     t.run()
-
-    # g = GUI(sizex=800, sizey=800)
-    # g.main.add_button(label="DEMO", x=400, y=400, fontsize=30, function=g.run_demo)
-    # g.main.run_menu()
-
-        
-
 
         
 
