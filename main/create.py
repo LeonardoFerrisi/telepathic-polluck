@@ -18,6 +18,8 @@ RESOLUTION = [1920,1080]
 LAYERS = 10
 WIDTH = 9
 
+GAMMA_THRES = 0.99 # Have a threshold that increases layers (complexity of image increases) with Gamma band
+
 # Fewer Layers = Prettier Image
 ACTIVATION = 'tanh'
 
@@ -105,6 +107,17 @@ def generate_seed(data, weight=10):
         #bandmean = 10 * np.mean(channel_mean_pow) / np.linalg.norm(channel_mean_pow) # normalize
         #seed += str(int(bandmean)) 
 
+    # Create dictionary
+
+    bands_dict = {
+        "delta": weighted_bands_norm[0],
+        "theta": weighted_bands_norm[1],
+        "alpha": weighted_bands_norm[2],
+        "beta" : weighted_bands_norm[3],
+        "gamma": weighted_bands_norm[4] 
+    }
+
+
     for nb in weighted_bands_norm:
         seed += str( round(nb,1) )
 
@@ -118,7 +131,7 @@ def generate_seed(data, weight=10):
     print(f"Weight = {weight}")
     print(f"Seed: {seed}")
     print("\n----------------------\n")
-    return int(seed)
+    return int(seed), bands_norm, weighted_bands_norm, bands_dict
 
 def create_image_from_eeg(filename, username, output_dir=''):
 
@@ -128,9 +141,19 @@ def create_image_from_eeg(filename, username, output_dir=''):
     """
     name = input("Please input the participant's name: ")
     filtered_data = preprocessing.filter_signal(filename=filename)
-    seed = generate_seed(filtered_data)
+    seed, normalized_bands, normalized_bands, bands_dict = generate_seed(filtered_data)
+
+    # modifier = 1.0
+    # if bands_dict["gamma"] >= 0.9:
+    #     m = (bands_dict["gamma"] - 0.8)*10
+    #     modifier += m
     
     print("Generating image.............")
+
+
+    # Evaluate Layers default
+    # layers = int(LAYERS+modifier) 
+    # print(f"Layers = {layers}")
     single_img_generation(RESOLUTION,seed,LAYERS,WIDTH,ACTIVATION, output_dir, username) # Imported as a method from main
 
 def create_image_from_stream(data, username, output_dir=''):
@@ -139,8 +162,28 @@ def create_image_from_stream(data, username, output_dir=''):
     Read in csv, preprocess, and pass a seed into the art generator.
     """
     filtered_data = preprocessing.filter_signal(datastream=data)
-    seed = generate_seed(filtered_data)
+    seed, normalized_bands, weighted_normalized_bands, bands_dict = generate_seed(filtered_data)
+
+    # Print band values
+    # print("\n---------------------\n")
+    print("Bandpowers Report:")
+    print(f"""
+    delta: { round(normalized_bands[0]*100, 2)}%
+    theta: { round(normalized_bands[1]*100, 2)}%
+    alpha: { round(normalized_bands[2]*100, 2)}%
+    beta : { round(normalized_bands[3]*100, 2)}%
+    gamma: { round(normalized_bands[4]*100, 2)}%
+    """)
+    print("\n---------------------\n")
     
+    # modifier = 1.0
+    # if bands_dict["gamma"] > GAMMA_THRES:
+    #     print("Gamma thres is lower than gamma band!")
+    #     m = 10
+    #     modifier += m
+    
+    # layers = int(LAYERS+modifier)
+    # print(f"Layers: {layers}")
     print("Generating image.............")
     single_img_generation(RESOLUTION,seed,LAYERS,WIDTH,ACTIVATION, output_dir, username) # Imported as a method from main
 

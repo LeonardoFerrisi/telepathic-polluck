@@ -19,6 +19,3 @@ def display_input_console( label='' ,msg='', color="white"):
 
     toReturn = input(message_contents)
     return toReturn
-
-
-
