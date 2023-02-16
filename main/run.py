@@ -5,6 +5,7 @@ from user_interface_methods import dislay_console, display_input_console
 from create import create_image_from_eeg, create_image_from_stream
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
+from brainflow.data_filter import DataFilter, AggOperations, FilterTypes, NoiseTypes
 from simplepygamemenus.menu import Menu
 import pandas as pd
 
@@ -152,13 +153,29 @@ class TAU:
                     bar()
 
             print("DONE! Generating...")
+
+            # Little snippet to ensure we are only getting EEG
+            channels = BoardShim.get_eeg_channels(boardID)
             data = board.get_board_data()  # get all data and remove it from internal buffer
+            data = data[channels, :]
+
+            sampling_rate = BoardShim.get_sampling_rate(boardID)
+
+            # Apply some filters
+            for idx, channel in enumerate(data):
+                DataFilter.perform_bandpass(channel, sampling_rate, 2.0, 50.0, 4, FilterTypes.BESSEL.value, 0)
+                DataFilter.perform_highpass(channel, sampling_rate, 2.0, 4, FilterTypes.BUTTERWORTH.value, 0)
+                DataFilter.perform_lowpass(channel, sampling_rate, 50.0, 5, FilterTypes.CHEBYSHEV_TYPE_1.value, 1)
+                DataFilter.remove_environmental_noise(channel, sampling_rate, NoiseTypes.FIFTY.value)
+
+                DataFilter.perform_rolling_filter(channel, 3, AggOperations.MEAN.value)
+
             board.stop_stream()
             board.release_session()
 
             # print(pd.DataFrame(data=data)) # For debugging purposes
 
-            self.image_gen_from_local_data(data=data, output_path="")
+            self.image_gen_from_local_data(data=data, output_path="", boardID=boardID)
 
     def run_filebased_image_gen(self, filepath, output_path):
         """
@@ -168,7 +185,7 @@ class TAU:
         dislay_console(label="[TAU]", msg=f"Using '{outpath}' as output path", color='cyan')
         create_image_from_eeg(filename=filepath, output_dir=output_path)
 
-    def image_gen_from_local_data(self, data, output_path):
+    def image_gen_from_local_data(self, data, output_path, boardID):
         """
         A method for loading an EEG recording file and outputting it
         """
@@ -176,7 +193,7 @@ class TAU:
         # dislay_console(label="[TAU]", msg=f"Using '{outpath}' as output path", color='cyan')
         print("[TAU]"+ f"  Using '{outpath}' as output path")
         username = display_input_console(label="[TAU]", msg="Please enter the name for the image.", color="white")
-        create_image_from_stream(data=data, output_dir=output_path, username=username)
+        create_image_from_stream(data=data, output_dir=output_path, username=username, filtered=True, boardID=boardID)
 
 if __name__ == "__main__":
     os.system('cls')

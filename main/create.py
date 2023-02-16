@@ -9,6 +9,11 @@ import random
 import os
 import datetime
 
+from brainflow.data_filter import DataFilter, AggOperations, FilterTypes, NoiseTypes, WindowOperations, DetrendOperations
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
+
+
+
 DIRNAME = os.path.dirname(__file__)
 
 IMG_NUM = 'single'
@@ -23,7 +28,8 @@ GAMMA_THRES = 0.99 # Have a threshold that increases layers (complexity of image
 # Fewer Layers = Prettier Image
 ACTIVATION = 'tanh'
 
-FREQ_BANDS = {"Alpha":[8,13],"Beta":[13,30],"Delta":[1,4],"Theta":[4,8],"Gamma":[30,60]}
+FREQ_BANDS = {"Delta":[1,4],"Theta":[4,8], "Alpha":[8,13],"Beta":[13,30],"Gamma":[30,60]}
+
 
 ### For single image gen
 import argparse
@@ -67,7 +73,7 @@ def single_img_generation(resolution,seed,layers,width,activation, output_dir=''
 
 # ######################
 
-def generate_seed(data, weight=10):
+def generate_seed(data, boardID, weight=10):
 
     """
     Generate seed from EEG data by extracting power from freq. bands
@@ -81,18 +87,23 @@ def generate_seed(data, weight=10):
     bands_norm = []
     weighted_bands_norm = []
 
+    preprocessing.show_spect(data)
+
     for band in list(FREQ_BANDS.keys()):
+
+        # bandpower = 
         
-        bandpower = preprocessing.bandpower(FREQ_BANDS[band],data)
+        bandpower = preprocessing.bandpower(FREQ_BANDS[band],data, boardID)
 
+        channel_mean_pow = bandpower
 
-        channel_mean_pow = np.mean(bandpower,axis=0)
+        # channel_mean_pow = np.mean(bandpower,axis=0)
         
         # if channel_mean_pow == []:
         # 	channel_mean_pow = np.mean(bandpower, axis=1)
 
         #import pdb; pdb.set_trace()
-        full_avg = np.mean(channel_mean_pow) # % 10)
+        full_avg = channel_mean_pow # % 10)
 
         print(f"Channel mean pow: {channel_mean_pow} >> {full_avg}")
         
@@ -133,7 +144,7 @@ def generate_seed(data, weight=10):
     print("\n----------------------\n")
     return int(seed), bands_norm, weighted_bands_norm, bands_dict
 
-def create_image_from_eeg(filename, username, output_dir=''):
+def create_image_from_eeg(filename, username, boardID, output_dir=''):
 
     """
     Read in csv, preprocess, and pass a seed into the art generator.
@@ -141,7 +152,7 @@ def create_image_from_eeg(filename, username, output_dir=''):
     """
     name = input("Please input the participant's name: ")
     filtered_data = preprocessing.filter_signal(filename=filename)
-    seed, normalized_bands, normalized_bands, bands_dict = generate_seed(filtered_data)
+    seed, normalized_bands, normalized_bands, bands_dict = generate_seed(filtered_data, boardID)
 
     # modifier = 1.0
     # if bands_dict["gamma"] >= 0.9:
@@ -156,13 +167,15 @@ def create_image_from_eeg(filename, username, output_dir=''):
     # print(f"Layers = {layers}")
     single_img_generation(RESOLUTION,seed,LAYERS,WIDTH,ACTIVATION, output_dir, username) # Imported as a method from main
 
-def create_image_from_stream(data, username, output_dir=''):
+def create_image_from_stream(data, username, boardID, output_dir='', filtered=True):
 
     """
     Read in csv, preprocess, and pass a seed into the art generator.
     """
-    filtered_data = preprocessing.filter_signal(datastream=data)
-    seed, normalized_bands, weighted_normalized_bands, bands_dict = generate_seed(filtered_data)
+
+    filtered_data = data 
+    if not filtered: filtered_data = preprocessing.filter_signal(datastream=data)
+    seed, normalized_bands, weighted_normalized_bands, bands_dict = generate_seed(filtered_data, boardID)
 
     # Print band values
     # print("\n---------------------\n")

@@ -5,6 +5,9 @@ import numpy as np
 from scipy.fft import fft,fftfreq
 import pdb
 
+from brainflow.data_filter import DataFilter, AggOperations, FilterTypes, NoiseTypes, WindowOperations, DetrendOperations
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
+
 HIGHPASS_THRESHOLD = 1
 LOWPASS_THRESHOLD = 60
 NOTCH_BAND = [58,62]
@@ -62,7 +65,7 @@ def filter_signal(filename="", datastream=None, filter_order=2):
 	
 	return data_filt
 
-def bandpower(band,data):
+def bandpower(band,data, boardID):
 
 	"""
 	Get power spectra of a specific frequency band.
@@ -73,18 +76,37 @@ def bandpower(band,data):
 	
 	print("Extracting bandpower from {} to {} Hz.".format(band[0],band[1]))
 	
-	yf = fft(data)
-	yf = np.abs(yf) # get power
-	N = np.shape(data)[1]
-	xf = fftfreq(N,1/SAMPLE_RATE)
-	try:
-		low_i = np.where(xf>=band[0])[0][0]
-		high_i = np.where(xf>=band[1])[0][0]
-	except:
-		raise ValueError("Issue in extracting bandpower! Desired frequency out of range.")
-		
-	return yf[:,low_i:high_i]
+	sampling_rate = BoardShim.get_sampling_rate(boardID)
+	nfft = DataFilter.get_nearest_power_of_two(sampling_rate)
 
+	powers = []
+	for i, channel in enumerate(data):
+		DataFilter.detrend(data[i], DetrendOperations.LINEAR.value)
+		psd = DataFilter.get_psd_welch(data[i], nfft, nfft // 2, sampling_rate,
+                                   WindowOperations.BLACKMAN_HARRIS.value)
+		power = DataFilter.get_band_power(psd, band[0], band[1])
+		powers.append(power)
+
+	avg_power = np.mean(powers)
+	print("*************************************************************")
+	print(f"Average Power for range: {band[0]}, {band[1]}: {avg_power}")
+	print("*************************************************************")
+
+	return avg_power
+
+
+	# yf = fft(data)
+	# yf = np.abs(yf) # get power
+	# N = np.shape(data)[1]
+	# xf = fftfreq(N,1/SAMPLE_RATE)
+	# try:
+	# 	low_i = np.where(xf>=band[0])[0][0]
+	# 	high_i = np.where(xf>=band[1])[0][0]
+	# except:
+	# 	raise ValueError("Issue in extracting bandpower! Desired frequency out of range.")
+		
+	# return yf[:,low_i:high_i]
+	
 def show_spect(data):
 
 	"""
@@ -97,7 +119,9 @@ def show_spect(data):
 	xf = fftfreq(N,1/SAMPLE_RATE)
 
 	import matplotlib.pyplot as plt
-	plt.plot(xf,np.abs(np.mean(yf,axis=0)),'b')
+
+	
+	plt.plot(xf[0:N//2], np.abs(np.mean(yf,axis=0))[0:N//2] ,'b')
 	plt.xlabel("Frequency (Hz)")
 	plt.ylabel("Power (mV^2)")
 	plt.title("Spectra")
