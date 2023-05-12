@@ -5,7 +5,7 @@ from user_interface_methods import dislay_console, display_input_console
 from create import create_image_from_eeg, create_image_from_stream
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
-from simplepygamemenus.menu import Menu
+# from simplepygamemenus.menu import Menu
 import pandas as pd
 
 from alive_progress import alive_bar

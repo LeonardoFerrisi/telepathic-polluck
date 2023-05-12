@@ -21,7 +21,8 @@ class NumpyArtGenerator:
         self.resolution = resolution
 
         self.seed = seed
-        numpy.random.seed(self.seed)
+        # numpy.random.seed(self.seed)
+        numpy.random.default_rng(self.seed)
 
         self.num_layers = num_layers
         self.layer_width = layer_width
